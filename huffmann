@@ -1,0 +1,233 @@
+import java.util.Scanner;
+
+class Node {
+    char info;
+    int freq;
+    String code;
+    Node Llink;
+    Node Rlink;
+
+    Node(char info, int freq) {
+        this.info = info;
+        this.freq = freq;
+        this.code = null;
+        this.Llink = null;
+        this.Rlink = null;
+    }
+}
+
+class BinaryTree {
+    private Node root;
+
+    BinaryTree() {
+        root = null;
+    }
+
+    void print() {
+        print(root);
+    }
+
+    private void print(Node node) {
+        if (node == null) {
+            return;
+        }
+        System.out.println(node.info + "\t" + node.freq);
+        print(node.Llink);
+        print(node.Rlink);
+    }
+
+    void assignCode(int i) {
+        assignCode(root, i);
+    }
+
+    private void assignCode(Node node, int i) {
+        if (node == null) {
+            return;
+        }
+        if (isLeaf(node)) {
+            node.code = Integer.toString(i);
+            System.out.println(node.info + "\t" + node.code);
+            return;
+        }
+        assignCode(node.Llink, i * 10);
+        assignCode(node.Rlink, i * 10 + 1);
+    }
+
+    void encode(String str) {
+        System.out.println("Encoded code for the input string '" + str + "' is");
+        for (int i = 0; i < str.length(); i++) {
+            printCode(str.charAt(i));
+        }
+        System.out.println();
+    }
+
+    private void printCode(char c) {
+        printCode(root, c);
+    }
+
+    private void printCode(Node node, char c) {
+        if (node == null) {
+            return;
+        }
+        if (isLeaf(node)) {
+            if (c == node.info) {
+                System.out.print(node.code + " ");
+            }
+            return;
+        }
+        printCode(node.Llink, c);
+        printCode(node.Rlink, c);
+    }
+
+    void decode(String cd, int size) {
+        System.out.println("Decoded string for the input code '" + cd + "' is");
+        int i = 0;
+        while (i < size) {
+            StringBuilder symbol = new StringBuilder();
+            int length = 0;
+            int f = 0;
+            while (f == 0) {
+                symbol.append(cd.charAt(i));
+                length++;
+                printSymbol(symbol.toString(), length, f);
+            }
+            i += length;
+        }
+        System.out.println();
+    }
+
+    private void printSymbol(String cd, int length, int f) {
+        printSymbol(root, cd, length, f);
+    }
+
+    private void printSymbol(Node node, String cd, int length, int f) {
+        if (node == null) {
+            return;
+        }
+        if (isLeaf(node)) {
+            if (isEqual(node.code, cd, length)) {
+                f = 1;
+                System.out.print(node.info);
+            }
+            return;
+        }
+        printSymbol(node.Llink, cd, length, f);
+        printSymbol(node.Rlink, cd, length, f);
+    }
+
+    private boolean isLeaf(Node node) {
+        return node.info != '\0';
+    }
+}
+
+class HuffmanCode {
+    private BinaryTree huffmanTree;
+
+    HuffmanCode() {
+        huffmanTree = buildHuffmanTree();
+        System.out.println("Traversal of Huffman Tree\n");
+        huffmanTree.print();
+    }
+
+    private BinaryTree buildHuffmanTree() {
+        minHeap heap = new minHeap();
+        while (heap.T[0].root.freq > 1) {
+            BinaryTree l = heap.remove();
+            System.out.println("\nAfter removing " + l.root.freq);
+            heap.print();
+            BinaryTree r = heap.remove();
+            System.out.println("\nAfter removing " + r.root.freq);
+            heap.print();
+            Node newNode = new Node('\0', l.root.freq + r.root.freq);
+            newNode.Llink = l.root;
+            newNode.Rlink = r.root;
+            huffmanTree = new BinaryTree();
+            huffmanTree.root = newNode;
+            heap.insert(huffmanTree);
+            System.out.println("\nAfter inserting " + l.root.freq + "+" + r.root.freq + "= " + newNode.freq);
+            heap.print();
+        }
+        System.out.println("\nThe process is completed, and Huffman Tree is obtained\n");
+        return heap.T[1];
+    }
+}
+
+class minHeap {
+    BinaryTree[] T;
+    int n;
+
+    minHeap() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter no. of symbols: ");
+        n = scanner.nextInt();
+        T = new BinaryTree[n + 1];
+        T[0] = new BinaryTree();
+        T[0].root = new Node('\0', n);
+
+        for (int i = 1; i <= n; i++) {
+            T[i] = new BinaryTree();
+            T[i].root = new Node('\0', 0);
+            System.out.print("Enter characters of string: ");
+            T[i].root.info = scanner.next().charAt(0);
+            System.out.print("and their frequency of occurrence in the string: ");
+            T[i].root.freq = scanner.nextInt();
+        }
+
+        System.out.println("\nAs elements are entered");
+        print();
+        int i = n / 2;
+        System.out.println("\nAfter heapification");
+        while (i > 0) {
+            heapify(i);
+            i--;
+        }
+        print();
+    }
+
+    private void heapify(int i) {
+        while (true) {
+            if (2 * i > T[0].root.freq) {
+                return;
+            }
+            if (2 * i + 1 > T[0].root.freq) {
+                if (T[2 * i].root.freq <= T[i].root.freq) {
+                    swap(2 * i, i);
+                }
+                return;
+            }
+            int m = min(T[2 * i].root.freq, T[2 * i + 1].root.freq);
+            if (T[i].root.freq <= m) {
+                return;
+            }
+            if (T[2 * i].root.freq <= T[2 * i + 1].root.freq) {
+                swap(2 * i, i);
+                i = 2 * i;
+            } else {
+                swap(2 * i + 1, i);
+                i = 2 * i + 1;
+            }
+        }
+    }
+
+    private void swap(int a, int b) {
+        BinaryTree c = T[a];
+        T[a] = T[b];
+        T[b] = c;
+    }
+
+    BinaryTree remove() {
+        BinaryTree b = T[1];
+        T[1] = T[T[0].root.freq];
+        T[0].root.freq--;
+        if (T[0].root.freq != 1) {
+            heapify(1);
+        }
+        return b;
+    }
+
+    void insert(BinaryTree b) {
+        T[0].root.freq++;
+        T[T[0].root.freq] = b;
+        int i = T[0].root.freq / 2;
+        while (i > 0) {
+            heapify
